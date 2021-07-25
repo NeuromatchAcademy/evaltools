@@ -5,8 +5,9 @@ from urllib.parse import urlencode
 
 
 class AirtableForm:
-    def __init__(self, form_id: str, redirect_url: str):
+    def __init__(self, form_id: str, table_name: str, redirect_url: str):
         self.form_id = form_id
+        self.table_name = table_name
         self.redirect_url = redirect_url
         self.answers = {}
         self.events = []
@@ -23,6 +24,7 @@ class AirtableForm:
         self.add_event('url generated')
         data = json.dumps({
             'form_id': self.form_id,
+            'table_name': self.table_name,
             'answers': self.answers, 
             'events': self.events})
         params = {'data': base64.b64encode(data.encode()).decode()}
