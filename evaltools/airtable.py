@@ -1,28 +1,30 @@
+import base64
 import json
 import time
 from urllib.parse import urlencode
 
 
-BASE_AIRTABLE_URL = 'https://airtable.com/embed/'
-
-
 class AirtableForm:
-    def __init__(self, form_id: str):
+    def __init__(self, form_id: str, redirect_url: str):
         self.form_id = form_id
-        self.answers = []
+        self.redirect_url = redirect_url
+        self.answers = {}
         self.events = []
         self.add_event('init')
     
     def add_event(self, event: str) -> None:
         self.events.append({'event': event, 'ts': time.time()})
 
-    def add_answer(self, answer: str) -> None:
-        self.answers.append(answer)
-        self.add_event('answer')
+    def add_answer(self, question: str, answer: str) -> None:
+        self.answers[question] = answer
+        self.add_event(f"answered {question}")
         
     def url(self) -> str:
         self.add_event('url generated')
-        params = {f"prefill_q{i+1:d}": a for i, a in enumerate(self.answers)}
-        params['events'] = json.dumps(self.events)
-        url = f"{BASE_AIRTABLE_URL}{self.form_id}?{urlencode(params)}"
+        data = json.dumps({
+            'form_id': self.form_id,
+            'answers': self.answers, 
+            'events': self.events})
+        params = {'data': base64.b64encode(data.encode()).decode()}
+        url = f"{self.redirect_url}?{urlencode(params)}"
         return url
